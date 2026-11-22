@@ -7,6 +7,17 @@ keeps everything on a persistent virtual disk between runs.
 It is written in portable Bash (works with the Bash 3.2 that ships on macOS)
 and has no Python or other language dependencies.
 
+## Install
+
+```bash
+./install.sh
+```
+
+Makes every project file executable. This is only needed if the execute bits
+were lost (for example after unzipping); a normal `git clone` already keeps
+`install.sh` and `run.sh` executable. If `./install.sh` itself is not
+executable, run `bash install.sh` once to repair it.
+
 ## Run
 
 ```bash
@@ -86,6 +97,7 @@ that data is still present after a separate process restarts MiniOS.
 ## Layout
 
 ```text
+install.sh          makes all project files executable
 run.sh              launcher
 minios.sh           kernel: boot, tokenizer, command loop, persistence hook
 lib/disk.sh         disk load/save and escaping
