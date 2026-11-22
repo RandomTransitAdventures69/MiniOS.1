@@ -60,6 +60,7 @@ MINIOS_DISK=/path/to/my.disk ./run.sh
 | `tree [path]` | show a directory tree |
 | `stat <path>` | show node information |
 | `echo [text]` | print text; `>` / `>>` write to a file |
+| `nana [file]` | full-screen text editor |
 | `df` | show virtual disk usage |
 | `history` | show command history |
 | `date`, `whoami`, `uname`, `ver` | system information |
@@ -85,6 +86,28 @@ user@minios:~$ tree ~
 Paths understand `.`, `..`, extra slashes and `~`. Quoted arguments,
 backslash escapes, `>` and `>>` are all handled by the shell.
 
+## nana editor
+
+`nana <file>` opens a file in MiniOS's full-screen editor (a new file is
+created if it does not exist yet). It has line numbers, a status bar, undo and
+redo with a 100-step history, cut/paste, search with wrap-around, and a
+save-confirmation prompt so unsaved work is not lost by accident.
+
+| Keys | Action |
+| --- | --- |
+| Arrows / `^P ^N ^B ^F` | move the cursor |
+| Home / End / `^A ^E` | start / end of line |
+| PgUp / PgDn | move one screen |
+| Enter, Backspace, Delete | edit text |
+| `^S` | save |
+| `^X` | exit (prompts if modified) |
+| `^Z` / `^Y` | undo / redo |
+| `^K` / `^V` | cut to end of line / paste |
+| `^W` | find (wraps around) |
+| `^G` | on-screen help |
+
+The terminal is restored to its original settings when the editor closes.
+
 ## Tests
 
 ```bash
@@ -93,6 +116,10 @@ backslash escapes, `>` and `>>` are all handled by the shell.
 
 The smoke test uses a temporary disk, exercises the filesystem and checks
 that data is still present after a separate process restarts MiniOS.
+
+`./tests/editor.sh` drives nana through a pseudo-terminal and checks editing,
+undo/redo, search, help and the unsaved-changes prompt. It is skipped
+automatically when `expect` is not installed.
 
 ## Layout
 
@@ -103,6 +130,8 @@ minios.sh           kernel: boot, tokenizer, command loop, persistence hook
 lib/disk.sh         disk load/save and escaping
 lib/vfs.sh          virtual filesystem operations
 lib/commands.sh     command implementations
+lib/editor.sh       nana full-screen editor
 minios_fs.json      original filesystem description from MiniOS.1
-tests/smoke.sh      automated tests
+tests/smoke.sh      filesystem smoke tests
+tests/editor.sh     nana editor test (needs expect)
 ```

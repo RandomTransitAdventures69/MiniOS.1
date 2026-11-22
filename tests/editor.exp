@@ -1,0 +1,92 @@
+# MiniOS nana editor test (driven through a pseudo-terminal).
+# Usage: expect editor.exp <repo-root> <disk-path>
+# Assertions use final file contents rather than transient screen states.
+
+set timeout 8
+set root [lindex $argv 0]
+set env(MINIOS_DISK) "[lindex $argv 1]"
+
+proc need {pattern} {
+    expect {
+        -re $pattern { }
+        timeout {
+            puts "FAIL: timed out waiting for: $pattern"
+            exit 2
+        }
+    }
+}
+
+proc shell_ready {} {
+    # The shell prompt ends in a literal "$ "; no test command contains one.
+    need {[$] }
+}
+
+proc open_editor {file} {
+    send -- "nana $file\r"
+    need {Ln 1/1}
+}
+
+proc leave_editor {} {
+    send -- "\023"
+    need {saved}
+    send -- "\030"
+    shell_ready
+}
+
+proc show_file {file} {
+    send -- "cat $file\r"
+}
+
+spawn bash "$root/run.sh"
+shell_ready
+
+# Basic typing, newline, save and reload.
+open_editor t1.txt
+send -- "hello\rnana"
+leave_editor
+show_file t1.txt
+need {hello}
+need {nana}
+puts "ok   typing, newline, save"
+
+# Undo: removing the last character before saving must change the file.
+open_editor t2.txt
+send -- "abc\032Z"
+leave_editor
+show_file t2.txt
+need {abZ}
+puts "ok   undo"
+
+# Redo: after undoing, redoing must restore the character.
+open_editor t3.txt
+send -- "abc\032\031Q"
+leave_editor
+show_file t3.txt
+need {abcQ}
+puts "ok   redo"
+
+# Find (wraps around) and the on-screen help.
+send -- "nana t1.txt\r"
+need {Ln 1/2}
+send -- "\027"
+need {Find: }
+send -- "hello\r"
+need {found: hello}
+send -- "\007"
+need {nana - MiniOS text editor}
+send -- "z"
+puts "ok   find and help"
+
+# Unsaved changes must be confirmed before discarding.
+send -- "XYZ\030"
+need {Save changes?}
+send -- "n\r"
+shell_ready
+show_file t1.txt
+need {hello}
+need {nana}
+puts "ok   unsaved-changes prompt discards"
+
+send -- "exit\r"
+expect eof
+puts "all editor tests passed"

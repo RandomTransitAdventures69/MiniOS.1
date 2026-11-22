@@ -20,7 +20,7 @@ if ! find "$ROOT" -path "$ROOT/.git" -prune -o -type f -exec chmod +x {} +; then
 fi
 
 FAILED=0
-for f in install.sh run.sh minios.sh lib/disk.sh lib/vfs.sh lib/commands.sh tests/smoke.sh; do
+for f in install.sh run.sh minios.sh lib/disk.sh lib/vfs.sh lib/commands.sh lib/editor.sh tests/smoke.sh tests/editor.sh; do
     if [[ ! -x "$ROOT/$f" ]]; then
         printf 'install: %s is not executable\n' "$f" >&2
         FAILED=1

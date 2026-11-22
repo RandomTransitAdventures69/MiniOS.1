@@ -22,6 +22,7 @@ if [[ -t 1 ]]; then COLOR=1; else COLOR=0; fi
 source "$SCRIPT_DIR/lib/disk.sh" || exit 1
 source "$SCRIPT_DIR/lib/vfs.sh" || exit 1
 source "$SCRIPT_DIR/lib/commands.sh" || exit 1
+source "$SCRIPT_DIR/lib/editor.sh" || exit 1
 
 if ! disk_load; then
     printf 'minios: unable to load virtual disk (%s)\n' "$DISK_FILE" >&2
@@ -164,6 +165,15 @@ handle_line() {
 
     local cmd=${TOKENS[0]}
     TOKENS=("${TOKENS[@]:1}")
+
+    # nana owns the terminal, so it must run with real stdout/stderr rather
+    # than through the output-capture file used by ordinary commands.
+    if [[ $cmd == nana ]]; then
+        cmd_nana "${TOKENS[@]}"
+        local nana_status=$?
+        (( DISK_DIRTY )) && disk_save
+        return $nana_status
+    fi
 
     # Run in THIS shell so filesystem mutations persist. Output is captured
     # through a file rather than $(...) for the same reason.
