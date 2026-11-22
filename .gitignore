@@ -221,3 +221,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# MiniOS runtime virtual disk (generated at boot, never committed)
+minios.disk
+minios.disk.tmp.*
+
+# MiniOS source directory (the generic "lib/" rule above would hide it)
+!lib/
